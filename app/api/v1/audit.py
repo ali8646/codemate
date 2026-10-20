@@ -64,8 +64,18 @@ def run_audit_background(audit_id: str, request: AuditRequest):
 
     try:
         for output in auditor_app.stream(initial_state):
+            # Check for early cancellation
+            if audit_store.get(audit_id, {}).get("status") == AuditStatus.CANCELLED:
+                logger.info(f"[{audit_id}] Audit cancelled by user request.")
+                audit_store[audit_id]["status_messages"].append("Audit stopped by user.")
+                break
+
             for node_name, node_state in output.items():
                 logger.info(f"[{audit_id}] Node completed: {node_name}")
+                
+                # Check cancellation again
+                if audit_store.get(audit_id, {}).get("status") == AuditStatus.CANCELLED:
+                    break
                 
                 # Update status and progress
                 if node_name in stage_progress_map:
@@ -124,6 +134,22 @@ async def start_audit(request: AuditRequest, background_tasks: BackgroundTasks):
         "progress": 5,
         "message": "Audit started successfully in background.",
     }
+
+
+@router.post("/{audit_id}/cancel", summary="Cancel an in-progress audit")
+async def cancel_audit(audit_id: str):
+    """Signals an ongoing audit job to halt execution immediately."""
+    if audit_id not in audit_store:
+        raise HTTPException(status_code=404, detail="Audit ID not found.")
+    
+    current_status = audit_store[audit_id]["status"]
+    if current_status in {AuditStatus.COMPLETED, AuditStatus.FAILED, AuditStatus.CANCELLED}:
+        return {"audit_id": audit_id, "status": current_status, "message": "Audit is not active."}
+
+    audit_store[audit_id]["status"] = AuditStatus.CANCELLED
+    audit_store[audit_id]["stage"] = "CANCELLED"
+    audit_store[audit_id]["status_messages"].append("Cancellation requested. Stopping agent...")
+    return {"audit_id": audit_id, "status": AuditStatus.CANCELLED, "message": "Audit cancelled successfully."}
 
 
 @router.get("/{audit_id}/status", summary="Check audit status and live stage progress")

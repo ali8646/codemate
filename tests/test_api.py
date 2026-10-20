@@ -18,3 +18,8 @@ def test_dashboard_endpoint():
     assert response.status_code == 200
     assert "CodeMate" in response.text
     assert "Autonomous Repository Auditor" in response.text
+
+
+def test_cancel_nonexistent_audit():
+    response = client.post("/api/v1/audit/nonexistent-id/cancel")
+    assert response.status_code == 404
