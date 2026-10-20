@@ -385,6 +385,13 @@
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
     }
+
+    // Auto-run trigger for headless preview/screenshots if query param present
+    if (window.location.search.includes('auto_run=1')) {
+      window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(startAudit, 400);
+      });
+    }
   </script>
 </body>
 </html>
