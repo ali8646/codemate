@@ -3,152 +3,165 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CodeMate 🛡️⚡ | Autonomous Repository Auditor</title>
+  <title>CodeMate | Autonomous Repository Auditor</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
         extend: {
-          colors: {
-            brand: {
-              50: '#eef2ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
-              900: '#1e1b4b',
-            }
+          fontFamily: {
+            mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace']
           }
         }
       }
     }
   </script>
-  <style>
-    pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
-  </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans antialiased">
+<body class="bg-zinc-950 text-zinc-100 min-h-screen flex flex-col font-sans antialiased selection:bg-zinc-800 selection:text-white">
 
-  <!-- Header -->
-  <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+  <!-- Minimalist Top Navigation -->
+  <header class="border-b border-zinc-800 bg-zinc-900/80 backdrop-blur sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center font-bold text-lg shadow-lg shadow-indigo-500/20">
-          ⚡
-        </div>
-        <div>
-          <span class="font-bold text-lg tracking-tight text-white">CodeMate</span>
-          <span class="text-xs bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-2 py-0.5 rounded-full ml-2">Autonomous Auditor</span>
-        </div>
+        <span class="font-semibold text-sm tracking-tight text-white uppercase tracking-wider">CodeMate</span>
+        <span class="text-zinc-600 text-xs">/</span>
+        <span class="text-xs text-zinc-400">Autonomous Repository Auditor</span>
       </div>
-      <div class="flex items-center space-x-4 text-sm">
-        <span class="text-slate-400 text-xs hidden sm:inline">Engine: Google Gemini 2.0 + LangGraph</span>
-        <a href="https://github.com/ali8646/codemate" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium text-xs transition border border-slate-700">
-          GitHub Repo
+      <div class="flex items-center space-x-4 text-xs">
+        <span class="text-zinc-500 font-mono">Gemini 3.8 Flash + LangGraph</span>
+        <a href="https://github.com/ali8646/codemate" target="_blank" class="text-zinc-400 hover:text-white transition">
+          Source Repository
         </a>
       </div>
     </div>
   </header>
 
   <!-- Main Content -->
-  <main class="max-w-6xl mx-auto px-6 py-10 flex-1 w-full space-y-8">
-    
-    <!-- Hero / Input Card -->
-    <div class="p-8 rounded-2xl bg-gradient-to-b from-slate-900 to-slate-900/40 border border-slate-800 shadow-xl space-y-6">
-      <div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-          Audit Any Repository for Performance & Security
-        </h1>
-        <p class="text-slate-400 mt-2 text-sm sm:text-base max-w-3xl">
-          CodeMate's multi-stage LangGraph agent inspects your codebase for 
-          <span class="text-indigo-400 font-medium">ORM N+1 queries</span>, 
-          <span class="text-indigo-400 font-medium">event loop blocking</span>, 
-          <span class="text-indigo-400 font-medium">insecure cryptography</span>, 
-          and <span class="text-indigo-400 font-medium">injection flaws</span>.
+  <main class="max-w-6xl mx-auto px-6 py-8 flex-1 w-full space-y-6">
+
+    <!-- Header & Audit Form Card -->
+    <div class="p-6 rounded-xl bg-zinc-900 border border-zinc-800 space-y-6">
+      <div class="space-y-1">
+        <h1 class="text-xl font-semibold text-white tracking-tight">Repository Audit Configuration</h1>
+        <p class="text-zinc-400 text-sm">
+          Run autonomous performance and security inspections across repositories using multi-stage LangGraph verification.
         </p>
       </div>
 
       <div class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold uppercase tracking-wider text-slate-300 mb-2">
-            Target GitHub Repository URL or Local Benchmark Path
+          <label for="repoUrl" class="block text-xs font-mono uppercase tracking-wider text-zinc-400 mb-2">
+            Target Repository URL or Local Benchmark
           </label>
           <div class="flex flex-col sm:flex-row gap-3">
             <input 
               id="repoUrl"
               type="text" 
-              placeholder="e.g. https://github.com/owner/repo or benchmarks/fastapi_nplusone" 
+              placeholder="e.g. benchmarks/fastapi_nplusone or https://github.com/owner/repo" 
               value="benchmarks/fastapi_nplusone"
-              class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-slate-200"
+              class="flex-1 bg-zinc-950 border border-zinc-700 rounded-lg px-3.5 py-2.5 text-sm font-mono text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 transition"
             />
             <button 
               id="startBtn"
               onclick="startAudit()"
-              class="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-semibold text-sm text-white shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-2 whitespace-nowrap"
+              class="px-5 py-2.5 rounded-lg bg-zinc-100 hover:bg-white text-zinc-950 font-medium text-sm transition flex items-center justify-center gap-2 whitespace-nowrap"
             >
-              <span>🚀 Start Autonomous Audit</span>
+              <span>Run Audit</span>
             </button>
           </div>
         </div>
 
-        <div class="flex items-center gap-6 text-sm text-slate-400">
+        <div class="flex flex-wrap items-center justify-between gap-4 pt-1 border-t border-zinc-800/60 text-xs text-zinc-400">
           <label class="flex items-center gap-2 cursor-pointer select-none">
-            <input id="autoFileIssues" type="checkbox" class="rounded bg-slate-900 border-slate-700 text-indigo-600 focus:ring-indigo-500 w-4 h-4" />
+            <input id="autoFileIssues" type="checkbox" class="rounded bg-zinc-950 border-zinc-700 text-zinc-100 focus:ring-0 w-3.5 h-3.5" />
             <span>Automatically file GitHub Issues for confirmed findings</span>
           </label>
-          <div class="flex items-center gap-2 text-xs text-slate-500">
-            <span>Branch:</span>
-            <input id="branchInput" type="text" value="main" class="bg-slate-950 border border-slate-800 rounded px-2 py-0.5 w-20 text-center font-mono text-slate-300" />
+          <div class="flex items-center gap-2">
+            <span class="text-zinc-500">Branch:</span>
+            <input id="branchInput" type="text" value="main" class="bg-zinc-950 border border-zinc-800 rounded px-2 py-0.5 w-20 text-center font-mono text-zinc-300" />
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Live Execution Status Console (Hidden by default) -->
-    <div id="statusSection" class="hidden rounded-2xl bg-slate-900 border border-slate-800 p-6 space-y-4">
+    <!-- Active Execution & Progress Bar Card (Hidden by default) -->
+    <div id="statusSection" class="hidden rounded-xl bg-zinc-900 border border-zinc-800 p-6 space-y-5">
+      
+      <!-- Progress Bar Header -->
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div id="statusSpinner" class="w-3 h-3 rounded-full bg-indigo-500 animate-ping"></div>
-          <h2 class="text-sm font-bold tracking-wider uppercase text-slate-300">Live Agent Execution Console</h2>
+        <div class="space-y-0.5">
+          <div class="text-xs uppercase font-mono tracking-wider text-zinc-400">Execution Status</div>
+          <div id="currentStageText" class="text-sm font-medium text-white">Initializing audit pipeline...</div>
         </div>
-        <span id="currentStageBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
-          INITIALIZING
-        </span>
+        <div class="text-right">
+          <span id="progressPercent" class="text-lg font-mono font-bold text-white">0%</span>
+        </div>
       </div>
 
-      <div id="statusConsole" class="bg-slate-950 rounded-xl p-4 font-mono text-xs text-slate-300 space-y-1.5 max-h-48 overflow-y-auto border border-slate-800/80">
-        <!-- Log items stream here -->
+      <!-- Linear Progress Bar -->
+      <div class="w-full bg-zinc-950 rounded-full h-2 border border-zinc-800 overflow-hidden">
+        <div id="progressBar" class="bg-zinc-300 h-full rounded-full transition-all duration-500 ease-out" style="width: 5%"></div>
       </div>
+
+      <!-- 4-Stage Stepper Tracker -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
+        <div id="stepScout" class="p-3 rounded-lg border border-zinc-800 bg-zinc-950 text-xs space-y-1">
+          <div class="text-zinc-500 font-mono">Stage 1</div>
+          <div class="font-medium text-zinc-300">Scout & Tech Stack</div>
+        </div>
+        <div id="stepAudit" class="p-3 rounded-lg border border-zinc-800 bg-zinc-950 text-xs space-y-1">
+          <div class="text-zinc-500 font-mono">Stage 2</div>
+          <div class="font-medium text-zinc-300">Codebase Audit</div>
+        </div>
+        <div id="stepVerify" class="p-3 rounded-lg border border-zinc-800 bg-zinc-950 text-xs space-y-1">
+          <div class="text-zinc-500 font-mono">Stage 3</div>
+          <div class="font-medium text-zinc-300">Verification Loop</div>
+        </div>
+        <div id="stepRemediate" class="p-3 rounded-lg border border-zinc-800 bg-zinc-950 text-xs space-y-1">
+          <div class="text-zinc-500 font-mono">Stage 4</div>
+          <div class="font-medium text-zinc-300">Report & Diff</div>
+        </div>
+      </div>
+
+      <!-- Execution Console Log -->
+      <div class="space-y-2">
+        <div class="text-xs font-mono uppercase tracking-wider text-zinc-500">Agent Output Log</div>
+        <div id="statusConsole" class="bg-zinc-950 rounded-lg p-3.5 font-mono text-xs text-zinc-300 space-y-1 max-h-44 overflow-y-auto border border-zinc-800">
+          <div class="text-zinc-500">> Registered audit request. Waiting for first node output...</div>
+        </div>
+      </div>
+
     </div>
 
     <!-- Audit Results Section (Hidden until complete) -->
     <div id="resultsSection" class="hidden space-y-6">
       
       <!-- Metrics Row -->
-      <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div class="p-5 rounded-xl bg-slate-900 border border-slate-800">
-          <div class="text-xs uppercase text-slate-400 font-semibold">Total Scanned</div>
-          <div id="metricScanned" class="text-2xl font-bold text-white mt-1">0 files</div>
+      <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div class="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
+          <div class="text-xs uppercase font-mono text-zinc-400">Total Scanned</div>
+          <div id="metricScanned" class="text-xl font-mono font-semibold text-white mt-1">0 files</div>
         </div>
-        <div class="p-5 rounded-xl bg-slate-900 border border-slate-800">
-          <div class="text-xs uppercase text-slate-400 font-semibold">Performance Issues</div>
-          <div id="metricPerf" class="text-2xl font-bold text-amber-400 mt-1">0</div>
+        <div class="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
+          <div class="text-xs uppercase font-mono text-zinc-400">Performance Issues</div>
+          <div id="metricPerf" class="text-xl font-mono font-semibold text-amber-400 mt-1">0</div>
         </div>
-        <div class="p-5 rounded-xl bg-slate-900 border border-slate-800">
-          <div class="text-xs uppercase text-slate-400 font-semibold">Security Vulnerabilities</div>
-          <div id="metricSec" class="text-2xl font-bold text-rose-400 mt-1">0</div>
+        <div class="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
+          <div class="text-xs uppercase font-mono text-zinc-400">Security Vulnerabilities</div>
+          <div id="metricSec" class="text-xl font-mono font-semibold text-rose-400 mt-1">0</div>
         </div>
-        <div class="p-5 rounded-xl bg-slate-900 border border-slate-800">
-          <div class="text-xs uppercase text-slate-400 font-semibold">Execution Time</div>
-          <div id="metricDuration" class="text-2xl font-bold text-emerald-400 mt-1">0.0s</div>
+        <div class="p-4 rounded-xl bg-zinc-900 border border-zinc-800">
+          <div class="text-xs uppercase font-mono text-zinc-400">Execution Time</div>
+          <div id="metricDuration" class="text-xl font-mono font-semibold text-zinc-300 mt-1">0.0s</div>
         </div>
       </div>
 
       <!-- Findings List -->
       <div class="space-y-4">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xl font-bold text-white">Verified Findings & Actionable Remediations</h2>
-          <span id="findingsCount" class="text-xs text-slate-400">0 findings</span>
+        <div class="flex items-center justify-between border-b border-zinc-800 pb-3">
+          <h2 class="text-base font-semibold text-white">Verified Findings & Remediations</h2>
+          <span id="findingsCount" class="text-xs font-mono text-zinc-400">0 findings</span>
         </div>
 
         <div id="findingsContainer" class="space-y-4">
@@ -160,8 +173,8 @@
 
   </main>
 
-  <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-500">
-    CodeMate &bull; Autonomous Repository Auditor powered by Google Gemini &bull; Built with FastAPI & LangGraph
+  <footer class="border-t border-zinc-800 py-5 text-center text-xs text-zinc-500 font-mono">
+    CodeMate &bull; Autonomous Repository Auditor &bull; FastAPI, LangGraph, Gemini 3.8 Flash
   </footer>
 
   <script>
@@ -180,13 +193,18 @@
 
       const startBtn = document.getElementById("startBtn");
       startBtn.disabled = true;
-      startBtn.innerHTML = `<span>⏳ Auditing...</span>`;
+      startBtn.classList.add("opacity-50", "cursor-not-allowed");
+      startBtn.innerHTML = `<span>Auditing...</span>`;
 
       // Reset and display status section
       document.getElementById("statusSection").classList.remove("hidden");
       document.getElementById("resultsSection").classList.add("hidden");
+      
+      updateStepper(1);
+      updateProgress(10, "Initializing repository ingestion...");
+
       const consoleEl = document.getElementById("statusConsole");
-      consoleEl.innerHTML = `<div class="text-slate-400">🚀 Initiating audit for: ${repoUrl}</div>`;
+      consoleEl.innerHTML = `<div class="text-zinc-400">> Initiating audit for: ${repoUrl}</div>`;
 
       try {
         const res = await fetch("/api/v1/audit", {
@@ -202,12 +220,12 @@
         const data = await res.json();
         activeAuditId = data.audit_id;
 
-        // Poll for progress
-        pollInterval = setInterval(checkStatus, 1500);
+        // Poll for progress every 1.2 seconds
+        clearInterval(pollInterval);
+        pollInterval = setInterval(checkStatus, 1200);
       } catch (err) {
-        consoleEl.innerHTML += `<div class="text-rose-400">Error starting audit: ${err}</div>`;
-        startBtn.disabled = false;
-        startBtn.innerHTML = `<span>🚀 Start Autonomous Audit</span>`;
+        consoleEl.innerHTML += `<div class="text-rose-400 font-mono">> Error: ${err}</div>`;
+        resetStartButton();
       }
     }
 
@@ -218,34 +236,87 @@
         const res = await fetch(`/api/v1/audit/${activeAuditId}/status`);
         const data = await res.json();
 
-        // Update stage badge
-        document.getElementById("currentStageBadge").innerText = data.stage || data.status;
+        const progress = data.progress || 10;
+        const stage = data.stage || data.status;
+
+        updateProgress(progress, getStageLabel(stage));
+        highlightCurrentStep(stage);
 
         // Update logs
         const consoleEl = document.getElementById("statusConsole");
         consoleEl.innerHTML = (data.status_messages || [])
-          .map(msg => `<div class="text-slate-300">❯ ${msg}</div>`)
+          .map(msg => `<div class="text-zinc-300">> ${escapeHtml(msg)}</div>`)
           .join("");
         consoleEl.scrollTop = consoleEl.scrollHeight;
 
         if (data.status === "COMPLETED") {
           clearInterval(pollInterval);
-          document.getElementById("statusSpinner").classList.remove("animate-ping");
-          document.getElementById("statusSpinner").classList.add("bg-emerald-500");
-          document.getElementById("startBtn").disabled = false;
-          document.getElementById("startBtn").innerHTML = `<span>🚀 Start Autonomous Audit</span>`;
+          updateProgress(100, "Audit completed successfully.");
+          resetStartButton();
           loadReport();
         } else if (data.status === "FAILED") {
           clearInterval(pollInterval);
-          document.getElementById("statusSpinner").classList.remove("animate-ping");
-          document.getElementById("statusSpinner").classList.add("bg-rose-500");
-          document.getElementById("startBtn").disabled = false;
-          document.getElementById("startBtn").innerHTML = `<span>🚀 Start Autonomous Audit</span>`;
-          consoleEl.innerHTML += `<div class="text-rose-400 font-bold mt-2">Audit Failed: ${data.error || 'Unknown error'}</div>`;
+          updateProgress(100, "Audit failed.");
+          resetStartButton();
+          consoleEl.innerHTML += `<div class="text-rose-400 font-mono font-bold mt-2">> Fatal Error: ${escapeHtml(data.error || 'Unknown error')}</div>`;
         }
       } catch (err) {
         console.error("Polling error:", err);
       }
+    }
+
+    function getStageLabel(stage) {
+      switch (stage) {
+        case "SCOUTING": return "Stage 1: Scouting codebase and classifying dependencies...";
+        case "AUDITING": return "Stage 2: Running performance and security audit checks...";
+        case "VERIFYING": return "Stage 3: Verifying candidate findings against context...";
+        case "REMEDIATING": return "Stage 4: Generating code diffs and synthesizing report...";
+        case "COMPLETED": return "Audit completed.";
+        case "FAILED": return "Execution failed.";
+        default: return "Processing...";
+      }
+    }
+
+    function updateProgress(percent, label) {
+      document.getElementById("progressBar").style.width = `${percent}%`;
+      document.getElementById("progressPercent").innerText = `${percent}%`;
+      if (label) {
+        document.getElementById("currentStageText").innerText = label;
+      }
+    }
+
+    function highlightCurrentStep(stage) {
+      const stepIds = ["stepScout", "stepAudit", "stepVerify", "stepRemediate"];
+      stepIds.forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove("border-zinc-400", "bg-zinc-800", "text-white");
+        el.classList.add("border-zinc-800", "bg-zinc-950", "text-zinc-300");
+      });
+
+      let activeIndex = 0;
+      if (stage === "SCOUTING" || stage === "SCOUT_COMPLETED") activeIndex = 0;
+      else if (stage === "AUDITING" || stage === "AUDIT_COMPLETED") activeIndex = 1;
+      else if (stage === "VERIFYING" || stage === "VERIFICATION_COMPLETED") activeIndex = 2;
+      else if (stage === "REMEDIATING" || stage === "COMPLETED") activeIndex = 3;
+
+      for (let i = 0; i <= activeIndex; i++) {
+        const el = document.getElementById(stepIds[i]);
+        if (i === activeIndex) {
+          el.classList.remove("border-zinc-800", "bg-zinc-950");
+          el.classList.add("border-zinc-400", "bg-zinc-850", "text-white");
+        }
+      }
+    }
+
+    function updateStepper(step) {
+      highlightCurrentStep("SCOUTING");
+    }
+
+    function resetStartButton() {
+      const startBtn = document.getElementById("startBtn");
+      startBtn.disabled = false;
+      startBtn.classList.remove("opacity-50", "cursor-not-allowed");
+      startBtn.innerHTML = `<span>Run Audit</span>`;
     }
 
     async function loadReport() {
@@ -263,59 +334,59 @@
 
         document.getElementById("metricPerf").innerText = perfCount;
         document.getElementById("metricSec").innerText = secCount;
-        document.getElementById("findingsCount").innerText = `${findings.length} confirmed findings`;
+        document.getElementById("findingsCount").innerText = `${findings.length} findings`;
 
         const container = document.getElementById("findingsContainer");
         if (findings.length === 0) {
           container.innerHTML = `
-            <div class="p-8 rounded-xl bg-slate-900 border border-slate-800 text-center text-slate-400">
-              🎉 No performance bottlenecks or security vulnerabilities detected in the audited scope!
+            <div class="p-6 rounded-lg bg-zinc-900 border border-zinc-800 text-center text-zinc-400 text-sm">
+              No performance bottlenecks or security vulnerabilities detected in the audited scope.
             </div>
           `;
           return;
         }
 
-        container.innerHTML = findings.map((f, idx) => {
+        container.innerHTML = findings.map(f => {
           const isSec = f.category === "SECURITY";
-          const catBadge = isSec 
-            ? `<span class="bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2.5 py-0.5 rounded-full text-xs font-semibold">SECURITY</span>`
-            : `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2.5 py-0.5 rounded-full text-xs font-semibold">PERFORMANCE</span>`;
+          const catClass = isSec 
+            ? "text-rose-400 bg-rose-400/10 border-rose-400/20"
+            : "text-amber-400 bg-amber-400/10 border-amber-400/20";
 
           const sevColors = {
-            "CRITICAL": "text-rose-400 border-rose-500/40 bg-rose-500/10",
-            "HIGH": "text-orange-400 border-orange-500/40 bg-orange-500/10",
-            "MEDIUM": "text-amber-400 border-amber-500/40 bg-amber-500/10",
-            "LOW": "text-blue-400 border-blue-500/40 bg-blue-500/10",
+            "CRITICAL": "text-rose-300 bg-rose-950/60 border-rose-800",
+            "HIGH": "text-orange-300 bg-orange-950/60 border-orange-800",
+            "MEDIUM": "text-amber-300 bg-amber-950/60 border-amber-800",
+            "LOW": "text-zinc-300 bg-zinc-800 border-zinc-700",
           };
-          const sevClass = sevColors[f.severity] || "text-slate-400 border-slate-700 bg-slate-800";
+          const sevClass = sevColors[f.severity] || "text-zinc-400 bg-zinc-800 border-zinc-700";
 
           const linesStr = f.line_start ? `:${f.line_start}${f.line_end ? '-' + f.line_end : ''}` : '';
           const githubLink = f.github_issue_url 
-            ? `<a href="${f.github_issue_url}" target="_blank" class="text-xs text-indigo-400 hover:underline font-mono">🔗 Filed GitHub Issue</a>` 
+            ? `<a href="${f.github_issue_url}" target="_blank" class="text-xs font-mono text-zinc-300 underline hover:text-white">Filed Issue -></a>` 
             : '';
 
           return `
-            <div class="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4 hover:border-slate-700 transition">
+            <div class="p-5 rounded-xl bg-zinc-900 border border-zinc-800 space-y-4">
               <div class="flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center gap-2">
-                  <span class="px-2 py-0.5 rounded text-xs font-bold border ${sevClass}">${f.severity}</span>
-                  ${catBadge}
-                  <h3 class="font-bold text-white text-base">${f.title}</h3>
+                  <span class="px-2 py-0.5 rounded text-xs font-mono font-semibold border ${sevClass}">${f.severity}</span>
+                  <span class="px-2 py-0.5 rounded text-xs font-mono font-medium border ${catClass}">${f.category}</span>
+                  <h3 class="font-semibold text-white text-sm ml-1">${escapeHtml(f.title)}</h3>
                 </div>
                 ${githubLink}
               </div>
 
-              <div class="text-xs font-mono text-slate-400 flex items-center gap-2">
-                <span>📁 File:</span>
-                <span class="text-slate-200 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">${f.file_path}${linesStr}</span>
+              <div class="text-xs font-mono text-zinc-400 flex items-center gap-2">
+                <span class="text-zinc-500">Target:</span>
+                <span class="text-zinc-200 bg-zinc-950 px-2 py-0.5 rounded border border-zinc-800">${escapeHtml(f.file_path)}${linesStr}</span>
               </div>
 
-              <p class="text-sm text-slate-300 leading-relaxed">${f.explanation}</p>
+              <p class="text-sm text-zinc-300 leading-relaxed">${escapeHtml(f.explanation)}</p>
 
               ${f.code_diff ? `
-                <div class="space-y-1.5">
-                  <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Proposed Remediation Diff:</div>
-                  <pre class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs text-slate-200 overflow-x-auto"><code>${escapeHtml(f.code_diff)}</code></pre>
+                <div class="space-y-1.5 pt-1">
+                  <div class="text-xs font-mono uppercase tracking-wider text-zinc-400">Remediation Patch</div>
+                  <pre class="bg-zinc-950 p-3.5 rounded-lg border border-zinc-800 text-xs font-mono text-zinc-200 overflow-x-auto"><code>${escapeHtml(f.code_diff)}</code></pre>
                 </div>
               ` : ''}
             </div>
@@ -328,7 +399,8 @@
     }
 
     function escapeHtml(str) {
-      return str
+      if (!str) return '';
+      return String(str)
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")

@@ -1,21 +1,25 @@
+import logging
 import time
 import uuid
 from typing import Dict, Optional
 from fastapi import APIRouter, BackgroundTasks, HTTPException
-from pydantic import BaseModel
 
 from app.agent.graph import auditor_app, AuditorState
 from app.schemas.audit import AuditRequest, AuditReport, AuditStatus
 
+logger = logging.getLogger("codemate.audit")
+logging.basicConfig(level=logging.INFO)
 
 router = APIRouter(prefix="/audit", tags=["Audit"])
 
-# In-memory store for audit runs (can be upgraded to Redis/PostgreSQL)
+# In-memory store for audit runs
 audit_store: Dict[str, Dict] = {}
 
 
 def run_audit_background(audit_id: str, request: AuditRequest):
-    """Executes the LangGraph audit pipeline in the background."""
+    """Executes the LangGraph audit pipeline in the background with granular progress tracking."""
+    logger.info(f"[{audit_id}] Starting audit background task for {request.repo_url}")
+    
     initial_state: AuditorState = {
         "audit_id": audit_id,
         "repo_target": request.repo_url,
@@ -23,8 +27,11 @@ def run_audit_background(audit_id: str, request: AuditRequest):
         "branch": request.branch,
         "repo_path": None,
         "start_time": time.time(),
-        "stage": "INITIALIZING",
-        "status_messages": ["Audit job queued and started."],
+        "stage": "SCOUTING",
+        "status_messages": [
+            "Audit initialized.",
+            f"Ingesting repository target: {request.repo_url}",
+        ],
         "error": None,
         "scout_result": None,
         "files_to_audit": [],
@@ -37,19 +44,42 @@ def run_audit_background(audit_id: str, request: AuditRequest):
 
     audit_store[audit_id] = {
         "status": AuditStatus.IN_PROGRESS,
-        "stage": "INITIALIZING",
-        "status_messages": ["Audit job queued and started."],
+        "stage": "SCOUTING",
+        "progress": 15,
+        "status_messages": [
+            "Audit initialized.",
+            f"Ingesting repository target: {request.repo_url}",
+            "Scanning file tree and analyzing configuration files with Gemini...",
+        ],
         "report": None,
         "error": None,
     }
 
+    stage_progress_map = {
+        "scout": (35, "AUDITING", "Scout complete. Starting performance and security code analysis..."),
+        "audit": (70, "VERIFYING", "Code analysis complete. Entering verification loop to eliminate false positives..."),
+        "verify": (90, "REMEDIATING", "Verification complete. Generating unified diffs and audit report..."),
+        "remediate_and_dispatch": (100, "COMPLETED", "Audit finished successfully."),
+    }
+
     try:
-        # Stream or invoke the LangGraph pipeline
         for output in auditor_app.stream(initial_state):
             for node_name, node_state in output.items():
-                audit_store[audit_id]["stage"] = node_state.get("stage", node_name)
+                logger.info(f"[{audit_id}] Node completed: {node_name}")
+                
+                # Update status and progress
+                if node_name in stage_progress_map:
+                    prog, next_stage, next_msg = stage_progress_map[node_name]
+                    audit_store[audit_id]["progress"] = prog
+                    audit_store[audit_id]["stage"] = next_stage
+                    audit_store[audit_id]["status_messages"].append(next_msg)
+
+                # Merge latest status messages from agent state
                 if node_state.get("status_messages"):
-                    audit_store[audit_id]["status_messages"] = node_state["status_messages"]
+                    for msg in node_state["status_messages"]:
+                        if msg not in audit_store[audit_id]["status_messages"]:
+                            audit_store[audit_id]["status_messages"].append(msg)
+
                 if node_state.get("report"):
                     audit_store[audit_id]["report"] = node_state["report"]
                 if node_state.get("error"):
@@ -57,13 +87,18 @@ def run_audit_background(audit_id: str, request: AuditRequest):
 
         if audit_store[audit_id].get("error"):
             audit_store[audit_id]["status"] = AuditStatus.FAILED
+            audit_store[audit_id]["progress"] = 100
         else:
             audit_store[audit_id]["status"] = AuditStatus.COMPLETED
+            audit_store[audit_id]["progress"] = 100
+            audit_store[audit_id]["stage"] = "COMPLETED"
 
     except Exception as e:
+        logger.error(f"[{audit_id}] Fatal audit execution error: {e}", exc_info=True)
         audit_store[audit_id]["status"] = AuditStatus.FAILED
+        audit_store[audit_id]["progress"] = 100
         audit_store[audit_id]["error"] = str(e)
-        audit_store[audit_id]["status_messages"].append(f"Fatal error during audit: {e}")
+        audit_store[audit_id]["status_messages"].append(f"Execution error: {e}")
 
 
 @router.post("", summary="Start a new repository audit")
@@ -75,8 +110,9 @@ async def start_audit(request: AuditRequest, background_tasks: BackgroundTasks):
     audit_id = str(uuid.uuid4())
     audit_store[audit_id] = {
         "status": AuditStatus.PENDING,
-        "stage": "PENDING",
-        "status_messages": ["Audit registered. Initializing..."],
+        "stage": "INITIALIZING",
+        "progress": 5,
+        "status_messages": ["Audit queued. Initializing agent pipeline..."],
         "report": None,
         "error": None,
     }
@@ -85,21 +121,24 @@ async def start_audit(request: AuditRequest, background_tasks: BackgroundTasks):
         "audit_id": audit_id,
         "repo_url": request.repo_url,
         "status": AuditStatus.PENDING,
+        "progress": 5,
         "message": "Audit started successfully in background.",
     }
 
 
 @router.get("/{audit_id}/status", summary="Check audit status and live stage progress")
 async def get_audit_status(audit_id: str):
-    """Retrieves live execution status and agent logs for an audit job."""
+    """Retrieves live execution status, progress percentage, and agent logs."""
     if audit_id not in audit_store:
         raise HTTPException(status_code=404, detail="Audit ID not found.")
+    data = audit_store[audit_id]
     return {
         "audit_id": audit_id,
-        "status": audit_store[audit_id]["status"],
-        "stage": audit_store[audit_id]["stage"],
-        "status_messages": audit_store[audit_id]["status_messages"],
-        "error": audit_store[audit_id].get("error"),
+        "status": data["status"],
+        "stage": data["stage"],
+        "progress": data.get("progress", 0),
+        "status_messages": data["status_messages"],
+        "error": data.get("error"),
     }
 
 
@@ -116,6 +155,7 @@ async def get_audit_report(audit_id: str):
         return {
             "audit_id": audit_id,
             "status": data["status"],
+            "progress": data.get("progress", 0),
             "message": "Audit is still in progress.",
         }
 
